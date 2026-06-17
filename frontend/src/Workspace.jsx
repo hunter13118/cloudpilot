@@ -22,32 +22,81 @@ const SESSION_KEY = "cloudpilot.byok";
  *   authConfigured — is Clerk wired? role — guest|operator. getToken — Clerk JWT.
  * Resolves capability (demo | byok | operator) and configures the API client.
  */
-export default function Workspace({ authConfigured = false, role = "guest", getToken = async () => null }) {
+export default function Workspace({ authConfigured = false, role = "guest", getToken = async () => null, clerkGetToken = null }) {
   const [state, dispatch] = useMission();
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [chaos, setChaos] = useState(false);
   const pollRef = useRef(null);
 
-  // ---- resolve capability whenever identity / key changes ----
+  const syncCapability = useCallback(
+    (byokKeyOverride) => {
+      const byokKey = byokKeyOverride !== undefined ? byokKeyOverride : sessionStorage.getItem(SESSION_KEY) || null;
+      const mode = byokKey ? "byok" : role === "operator" ? "operator" : "demo";
+      configureCapability({
+        mode,
+        getKey: () => sessionStorage.getItem(SESSION_KEY) || null,
+        getToken,
+      });
+      dispatch({ type: "CAPABILITY", payload: { mode, role, authConfigured, byokKey } });
+      return mode;
+    },
+    [role, authConfigured, getToken, dispatch]
+  );
+
+  // ---- resolve capability whenever identity changes ----
   useEffect(() => {
-    const byokKey = sessionStorage.getItem(SESSION_KEY) || null;
-    const mode = byokKey ? "byok" : role === "operator" ? "operator" : "demo";
-    configureCapability({ mode, getKey: () => sessionStorage.getItem(SESSION_KEY) || null, getToken });
-    dispatch({ type: "CAPABILITY", payload: { mode, role, authConfigured, byokKey } });
-  }, [role, authConfigured, getToken, dispatch, state.keyModalOpen]);
+    syncCapability();
+  }, [syncCapability]);
+
+  // ---- operator sanity check: JWT template must carry role for the edge fn ----
+  useEffect(() => {
+    if (!authConfigured || role !== "operator" || !clerkGetToken) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const templateToken = await clerkGetToken({ template: "cloudpilot" });
+        if (cancelled) return;
+        if (!templateToken) {
+          dispatch({
+            type: "TOAST",
+            payload: {
+              kind: "warn",
+              text: "Operator UI is on, but the Clerk JWT template “cloudpilot” is missing — live synthesis may fall back to demo until you add it (see DEPLOY.md).",
+            },
+          });
+        }
+      } catch {
+        if (!cancelled) {
+          dispatch({
+            type: "TOAST",
+            payload: {
+              kind: "warn",
+              text: "Create the Clerk JWT template “cloudpilot” with { \"role\": \"{{user.public_metadata.role}}\" } so operator mode works end-to-end.",
+            },
+          });
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authConfigured, role, clerkGetToken, dispatch]);
 
   const setByokKey = useCallback(
     (key) => {
       if (key) sessionStorage.setItem(SESSION_KEY, key);
       else sessionStorage.removeItem(SESSION_KEY);
       dispatch({ type: "KEY_MODAL", payload: false });
-      const mode = key ? "byok" : role === "operator" ? "operator" : "demo";
-      configureCapability({ mode });
-      dispatch({ type: "CAPABILITY", payload: { mode, byokKey: key } });
-      dispatch({ type: "TOAST", payload: key ? { kind: "ok", text: "Gemini key stored for this session — real synthesis enabled." } : { kind: "warn", text: "Key cleared — back to demo mode." } });
+      syncCapability(key || null);
+      dispatch({
+        type: "TOAST",
+        payload: key
+          ? { kind: "ok", text: "Gemini key stored for this session — real synthesis enabled." }
+          : { kind: "warn", text: "Key cleared — back to demo mode." },
+      });
     },
-    [role, dispatch]
+    [syncCapability, dispatch]
   );
 
   // ---- reasoning typewriter ----
@@ -103,7 +152,17 @@ export default function Workspace({ authConfigured = false, role = "guest", getT
     try {
       const run = await api.generate(graph, state.project);
       dispatch({ type: "GENERATE_DONE", payload: run });
-      if (run._fellBack) dispatch({ type: "TOAST", payload: { kind: "warn", text: "Live Gemini call failed — showing a simulated result." } });
+      if (run._authFailed) {
+        dispatch({
+          type: "TOAST",
+          payload: {
+            kind: "warn",
+            text: "Live synthesis rejected your session — sign in again or check the Clerk JWT template / operator role.",
+          },
+        });
+      } else if (run._fellBack) {
+        dispatch({ type: "TOAST", payload: { kind: "warn", text: "Live Gemini call failed — showing a simulated result." } });
+      }
     } catch {
       dispatch({ type: "GENERATE_FAIL", payload: "Gemini generation failed — check the API gateway." });
     }

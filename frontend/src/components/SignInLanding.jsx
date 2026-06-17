@@ -30,7 +30,7 @@ export default function SignInLanding() {
           this tool asks you to sign in first.
         </p>
         <p className="text-xs text-slate-500 mt-2 font-mono">
-          Sign in to explore the full demo. Bring a Gemini key (or get operator access) for live synthesis.
+          Sign in for the interactive demo. Paste your own Gemini key for live synthesis, or ask for operator access.
         </p>
 
         <SignInButton mode="modal">

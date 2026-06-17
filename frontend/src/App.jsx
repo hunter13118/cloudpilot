@@ -8,6 +8,7 @@
 // ever configure Clerk. Wire the key and it becomes a real login gate.
 // ──────────────────────────────────────────────────────────────────────────
 import { SignedIn, SignedOut, useAuth, useUser } from "@clerk/clerk-react";
+import { useCallback } from "react";
 import SignInLanding from "./components/SignInLanding.jsx";
 import Workspace from "./Workspace.jsx";
 
@@ -32,18 +33,18 @@ export default function App() {
 
 function AuthedWorkspace() {
   const { user } = useUser();
-  const { getToken } = useAuth();
+  const { getToken: clerkGetToken } = useAuth();
   const role = user?.publicMetadata?.role === "operator" ? "operator" : "guest";
   // Prefer a custom "cloudpilot" JWT template (carries the role claim for the
   // Pages Function); fall back to the default session token.
-  const tokenGetter = async () => {
+  const getToken = useCallback(async () => {
     try {
-      const t = await getToken({ template: "cloudpilot" });
+      const t = await clerkGetToken({ template: "cloudpilot" });
       if (t) return t;
     } catch {
       /* template not configured yet */
     }
-    return getToken();
-  };
-  return <Workspace authConfigured role={role} getToken={tokenGetter} />;
+    return clerkGetToken();
+  }, [clerkGetToken]);
+  return <Workspace authConfigured role={role} getToken={getToken} clerkGetToken={clerkGetToken} />;
 }

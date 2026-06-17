@@ -1,15 +1,18 @@
-# Deploying CloudPilot to Cloudflare Pages
+# Deploying CloudPilot
 
-CloudPilot is built to land on the **Cloudflare Pages free plan** and *just work*
-the moment you connect the repo — it boots as a fully interactive **demo** with
-no backend, no keys, and no login. You then layer on auth and real Gemini calls
-when you're ready.
+**Primary URL:** `https://hunterthemilkman.com/projects/cloudpilot`
+
+CloudPilot ships **inside the portfolio Worker** (`milkman-webapp-portfolio`). The portfolio build runs `scripts/integrate-cloudpilot.mjs`, which builds this repo and copies the UI + edge handlers into the portfolio deploy.
+
+**Clerk + operator setup:** see **[docs/CLERK_SETUP.md](docs/CLERK_SETUP.md)** (step-by-step from zero).
+
+Standalone Cloudflare Pages deploy (this repo only) is still supported for experiments — see sections below.
 
 ## The two layers
 
 | Layer | Question | Mechanism |
 |---|---|---|
-| **Access** | "Are you allowed through the door?" | Clerk gates `/project`. Unset → ungated demo. |
+| **Access** | "Are you allowed through the door?" | Clerk gates `/projects/cloudpilot`. Unset → ungated demo. |
 | **Capability** | "Can you do real work?" | `demo` (local) · `byok` (your key) · `operator` (shared key, role-gated) |
 
 These are independent: a signed-in visitor still sees the demo until they bring a
@@ -40,7 +43,7 @@ That's it — the site deploys as a working placeholder demo.
    domain** in Clerk so the session is shared. Portfolio stays public; only this
    app reads the session.
 
-Now `/project` shows a sign-in screen; the rest of your portfolio is untouched.
+Now `/projects/cloudpilot/` shows a sign-in screen; the rest of your portfolio is untouched.
 
 ## 3. Turn on real Gemini
 
@@ -61,7 +64,9 @@ edge function after the role is verified, and never reaches the browser.
 
 **Anyone — bring-your-own-key:** click **Connect Gemini** in the top bar and paste
 a key. It lives in `sessionStorage` (gone on tab close), is sent as `X-Gemini-Key`
-to the edge function, and is never persisted or bundled.
+to the edge function, and is never persisted or bundled. When `CLERK_JWKS_URL` is
+set on the edge, BYOK also requires a valid Clerk session (Bearer JWT) — the UI
+sends both headers automatically after sign-in.
 
 > ⚠️ **You set every secret yourself** in the Cloudflare/Clerk dashboards. Never
 > commit a key or put it in `VITE_*` (those ship to the browser).
@@ -76,7 +81,12 @@ to the edge function, and is never persisted or bundled.
 ## Local preview
 
 ```bash
-cd frontend && npm install && npm run dev      # demo mode at :5173
-# real edge functions locally:
-npx wrangler pages dev frontend/dist --compatibility-date=2026-06-01
+cd frontend && npm install && npm run dev      # demo mode at :5173 (no edge fn)
+
+# Full stack: Vite + Pages Functions (BYOK / Clerk / operator paths)
+npm run dev:edge                               # from repo root; needs .dev.vars
 ```
+
+`dev:edge` runs Vite behind `wrangler pages dev` so `/api/v1/*` hits the same
+edge functions as production. Copy `.dev.vars.example` → `.dev.vars` and fill in
+your Clerk JWKS URL + Gemini key for operator/BYOK testing.

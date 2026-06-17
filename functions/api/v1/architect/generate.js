@@ -3,6 +3,7 @@
 // Credential resolution:
 //   • X-Gemini-Key header (BYOK)              → use that key, mode "byok"
 //   • Bearer Clerk JWT + operator role + env  → use env.GEMINI_API_KEY, mode "operator"
+//   • When CLERK_JWKS_URL is set              → valid Bearer JWT required for any live call
 //   • otherwise                               → 401 (client falls back to demo)
 //
 // Required Cloudflare env (set in dashboard, never committed):
@@ -26,24 +27,40 @@ export async function onRequestPost({ request, env }) {
 
   let apiKey = null;
   let mode = null;
+  const authRequired = Boolean(env.CLERK_JWKS_URL);
+
+  const bearer = (request.headers.get("Authorization") || "").match(/^Bearer (.+)$/);
+  const claims = bearer ? await verifyClerkJwt(bearer[1], env) : null;
+
+  if (authRequired && !claims) {
+    return json(
+      {
+        error: "unauthorized",
+        hint: "Clerk session required. Sign in, then use BYOK or operator access.",
+      },
+      401
+    );
+  }
 
   const userKey = request.headers.get("X-Gemini-Key");
   if (userKey) {
     apiKey = userKey;
     mode = "byok";
-  } else {
-    const m = (request.headers.get("Authorization") || "").match(/^Bearer (.+)$/);
-    if (m && env.GEMINI_API_KEY) {
-      const claims = await verifyClerkJwt(m[1], env);
-      if (isOperator(claims)) {
-        apiKey = env.GEMINI_API_KEY;
-        mode = "operator";
-      }
-    }
+  } else if (claims && env.GEMINI_API_KEY && isOperator(claims)) {
+    apiKey = env.GEMINI_API_KEY;
+    mode = "operator";
   }
 
   if (!apiKey) {
-    return json({ error: "no_credentials", hint: "Send X-Gemini-Key, or sign in as an operator." }, 401);
+    return json(
+      {
+        error: "no_credentials",
+        hint: authRequired
+          ? "Send X-Gemini-Key while signed in, or sign in as an operator."
+          : "Send X-Gemini-Key, or sign in as an operator.",
+      },
+      401
+    );
   }
 
   try {

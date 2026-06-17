@@ -14,8 +14,9 @@
 // ──────────────────────────────────────────────────────────────────────────
 import axios from "axios";
 import * as demo from "./demoEngine.js";
+import { apiBase } from "../lib/appBase.js";
 
-const client = axios.create({ baseURL: "/api/v1", timeout: 30000 });
+const client = axios.create({ baseURL: apiBase, timeout: 30000 });
 
 // module-level capability, updated by the auth layer
 const capability = {
@@ -32,15 +33,19 @@ export function currentMode() {
 }
 
 async function authHeaders() {
+  const headers = {};
   if (capability.mode === "byok") {
     const k = capability.getKey();
-    return k ? { "X-Gemini-Key": k } : null;
+    if (!k) return null;
+    headers["X-Gemini-Key"] = k;
   }
-  if (capability.mode === "operator") {
+  if (capability.mode === "operator" || capability.mode === "byok") {
     const t = await capability.getToken();
-    return t ? { Authorization: `Bearer ${t}` } : null;
+    if (t) headers.Authorization = `Bearer ${t}`;
   }
-  return null;
+  if (capability.mode === "byok" && !headers["X-Gemini-Key"]) return null;
+  if (capability.mode === "operator" && !headers.Authorization) return null;
+  return Object.keys(headers).length ? headers : null;
 }
 
 export const api = {
@@ -61,6 +66,8 @@ export const api = {
       // graceful degradation: surface a flag the UI can toast, but keep working
       const res = demo.generate(graph, project);
       res._fellBack = true;
+      const status = e?.response?.status;
+      if (status === 401) res._authFailed = true;
       return res;
     }
   },

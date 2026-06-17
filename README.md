@@ -56,7 +56,7 @@ on top when you're ready. Two independent layers:
 - **Access** — [Clerk](https://clerk.com) gates `/project`; leave it unconfigured and the app runs ungated in demo mode. Your portfolio stays public.
 - **Capability** — `demo` (local, zero creds) · `byok` (visitor pastes their own Gemini key, session-only) · `operator` (you/invited friends get a role-gated server-side shared key that never touches the browser).
 
-Full step-by-step (build settings, Clerk JWT template, Cloudflare secrets) is in **[DEPLOY.md](DEPLOY.md)**. The one real backend route is `POST /api/v1/architect/generate`; the Flight Deck and whiteboard import are client-side simulations (wire them to live Cloud Build / Vertex via the self-host `/backend`).
+Full step-by-step (build settings, Clerk JWT template, Cloudflare secrets) is in **[DEPLOY.md](DEPLOY.md)** and **[docs/CLERK_SETUP.md](docs/CLERK_SETUP.md)**. Production URL: `https://hunterthemilkman.com/projects/cloudpilot`.
 
 ## Run it locally
 

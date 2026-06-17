@@ -74,3 +74,8 @@ export function isOperator(claims) {
   if (!claims) return false;
   return claims.role === "operator" || claims?.public_metadata?.role === "operator" || claims?.metadata?.role === "operator";
 }
+
+/** True when Clerk auth is wired on the edge (session JWT required for live calls). */
+export function authRequired(env) {
+  return Boolean(env?.CLERK_JWKS_URL);
+}

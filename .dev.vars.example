@@ -1,0 +1,5 @@
+# Local Pages Functions secrets (wrangler pages dev).
+# Copy to .dev.vars — never commit real values.
+GEMINI_API_KEY=
+CLERK_JWKS_URL=https://YOUR-APP.clerk.accounts.dev/.well-known/jwks.json
+CLERK_ISSUER=https://YOUR-APP.clerk.accounts.dev
