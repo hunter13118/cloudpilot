@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --gem-gradient: linear-gradient(90deg, #4285f4, #9b72cb, #d96570);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-space-950 text-slate-200 font-display antialiased overflow-hidden;
+  background-image:
+    radial-gradient(1100px 520px at 18% -10%, rgba(66, 133, 244, 0.13), transparent 60%),
+    radial-gradient(900px 480px at 85% 110%, rgba(155, 114, 203, 0.11), transparent 60%),
+    radial-gradient(640px 360px at 70% 8%, rgba(217, 101, 112, 0.07), transparent 60%);
+}
+
+/* ---- glass panel primitive ---- */
+.panel {
+  @apply bg-glass border border-indigo-300/10 rounded-2xl shadow-panel;
+  backdrop-filter: blur(18px);
+}
+
+/* ---- gemini gradient text / borders / buttons ---- */
+.gem-text {
+  background: var(--gem-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.gem-btn {
+  background: linear-gradient(90deg, #4285f4, #9b72cb, #d96570, #4285f4);
+  background-size: 200% 100%;
+  @apply animate-shimmer text-white font-semibold;
+}
+.gem-ring {
+  position: relative;
+}
+.gem-ring::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--gem-gradient);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ---- react flow overrides: deep space canvas ---- */
+.react-flow__background {
+  background: transparent;
+}
+.react-flow__edge-path {
+  stroke: url(#gem-edge-gradient);
+  stroke-width: 1.8;
+}
+.react-flow__edge.animated .react-flow__edge-path {
+  stroke-dasharray: 6 4;
+  animation: dashdraw 0.8s linear infinite;
+}
+@keyframes dashdraw {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+.react-flow__edge-textbg {
+  fill: #0d1224;
+}
+.react-flow__edge-text {
+  fill: #94a3b8;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+}
+.react-flow__handle {
+  @apply w-2.5 h-2.5 bg-tele border-2 border-space-900;
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.8);
+}
+.react-flow__controls {
+  @apply panel overflow-hidden;
+}
+.react-flow__controls-button {
+  @apply bg-transparent border-indigo-300/10 text-slate-300;
+}
+.react-flow__controls-button:hover {
+  @apply bg-space-700;
+}
+.react-flow__controls-button svg {
+  fill: currentColor;
+}
+.react-flow__minimap {
+  @apply panel;
+}
+.react-flow__attribution {
+  display: none;
+}
+
+/* ---- scrollbars ---- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-space-700 rounded-full;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---- telemetry log ticker ---- */
+.log-line {
+  @apply font-mono text-[11px] leading-5 whitespace-pre-wrap animate-rise;
+}
+
+/* ---- diff view ---- */
+.diff-add {
+  @apply bg-emerald-500/10 text-emerald-300;
+}
+.diff-del {
+  @apply bg-rose-500/10 text-rose-300 line-through decoration-rose-400/40;
+}
+.diff-ctx {
+  @apply text-slate-400;
+}

@@ -1,0 +1,16 @@
+{
+  "name": "cloudpilot",
+  "private": true,
+  "version": "1.0.0",
+  "description": "CloudPilot — Visual-to-Cloud mission control powered by Gemini. Draw it, ground it, ship it.",
+  "scripts": {
+    "setup": "cd frontend && npm install && cd .. && npm install",
+    "dev": "npm --prefix frontend run dev",
+    "test:e2e": "playwright test --project=chromium",
+    "test:e2e:ui": "playwright test --ui",
+    "screenshots": "playwright test tests/showcase.screens.ts --project=showcase"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0"
+  }
+}

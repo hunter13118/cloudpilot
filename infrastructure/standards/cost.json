@@ -1,0 +1,5 @@
+[
+  {"id": "COST-003", "category": "cost", "severity": "WARN", "title": "VM rightsizing", "rule": "Compute Engine instances require an autoscaler or a documented rightsizing exemption."},
+  {"id": "COST-008", "category": "cost", "severity": "WARN", "title": "Object lifecycle", "rule": "Cloud Storage buckets define lifecycle rules transitioning objects to Nearline/Coldline within 90 days."},
+  {"id": "COST-012", "category": "cost", "severity": "PASS", "title": "Budget annotation", "rule": "Every generated plan carries a projected monthly cost annotation reviewed at deploy time."}
+]

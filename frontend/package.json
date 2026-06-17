@@ -1,0 +1,28 @@
+{
+  "name": "cloudpilot-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "CloudPilot — Visual-to-Cloud mission control, powered by Gemini",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test:e2e": "cd .. && npx playwright test"
+  },
+  "dependencies": {
+    "@clerk/clerk-react": "^5.31.0",
+    "@xyflow/react": "^12.6.0",
+    "axios": "^1.9.0",
+    "lucide-react": "^0.511.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.4.1",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
+    "vite": "^5.4.19"
+  }
+}

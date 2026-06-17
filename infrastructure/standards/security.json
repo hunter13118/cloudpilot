@@ -1,0 +1,7 @@
+[
+  {"id": "SEC-001", "category": "security", "severity": "BLOCK", "title": "Encryption at rest", "rule": "All stateful services must use Google-managed or customer-managed encryption keys. Plaintext storage is prohibited."},
+  {"id": "SEC-004", "category": "security", "severity": "BLOCK", "title": "Database network isolation", "rule": "Managed databases (Cloud SQL, AlloyDB, Memorystore) must disable public IPv4 and attach to a peered VPC."},
+  {"id": "SEC-009", "category": "security", "severity": "WARN", "title": "Edge WAF required", "rule": "Internet-facing load balancers should attach a Cloud Armor policy with the baseline OWASP rule set."},
+  {"id": "IAM-002", "category": "iam", "severity": "BLOCK", "title": "Least-privilege service accounts", "rule": "Workloads run as dedicated service accounts. Primitive roles (owner/editor/viewer) are prohibited in Terraform plans."},
+  {"id": "IAM-007", "category": "iam", "severity": "WARN", "title": "Key rotation", "rule": "Service account keys older than 90 days must be rotated; prefer workload identity federation."}
+]

@@ -1,0 +1,6 @@
+[
+  {"id": "RES-002", "category": "reliability", "severity": "WARN", "title": "Recoverable delete windows", "rule": "Stateful services must enable point-in-time recovery and respect provider name-reservation windows after deletion."},
+  {"id": "RES-011", "category": "reliability", "severity": "WARN", "title": "Cold-start SLO", "rule": "Latency-sensitive serverless workloads pin min_instances >= 1 to meet the 300ms p95 cold-start SLO."},
+  {"id": "NET-001", "category": "network", "severity": "BLOCK", "title": "Private services require a VPC", "rule": "Any private-IP service requires an explicit VPC network resource in the same plan."},
+  {"id": "NAM-006", "category": "naming", "severity": "WARN", "title": "Immutable resource naming", "rule": "Resources with name-reservation semantics append a stable entropy suffix to avoid recreation collisions."}
+]

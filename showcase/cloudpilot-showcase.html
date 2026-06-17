@@ -1,0 +1,755 @@
+<!doctype html>
+<!--
+  CloudPilot · MilkMan Enterprise — single-file showcase
+  Zero dependencies, zero build, zero backend. Double-click → full demo.
+  The real app lives in /frontend (React + React Flow); this file mirrors it
+  pixel-for-pixel for instant demos and portfolio screenshots.
+  Deep-link states: ?state=canvas | reasoning | compliance | iac | orbit | diagnosis
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CloudPilot · MilkMan Enterprise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #060913;
+    --panel: rgba(13, 18, 36, 0.78);
+    --line: rgba(120, 140, 255, 0.14);
+    --line-hi: rgba(120, 140, 255, 0.3);
+    --txt: #e2e8f0;
+    --dim: #94a3b8;
+    --dimmer: #64748b;
+    --faint: #475569;
+    --tele: #22d3ee;
+    --ok: #34d399;
+    --warn: #fbbf24;
+    --bad: #f87171;
+    --violet: #c4b5fd;
+    --gem: linear-gradient(90deg, #4285f4, #9b72cb, #d96570);
+    --disp: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    background-image:
+      radial-gradient(1100px 520px at 18% -10%, rgba(66,133,244,.13), transparent 60%),
+      radial-gradient(900px 480px at 85% 110%, rgba(155,114,203,.11), transparent 60%),
+      radial-gradient(640px 360px at 70% 8%, rgba(217,101,112,.07), transparent 60%);
+    color: var(--txt);
+    font-family: var(--disp);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  .app { height: 100vh; display: flex; flex-direction: column; gap: 12px; padding: 12px; }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: 0 8px 40px rgba(0,0,0,.55);
+    backdrop-filter: blur(18px);
+  }
+  .mono { font-family: var(--mono); }
+  .gem-text { background: var(--gem); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .gem-ring { position: relative; }
+  .gem-ring::before {
+    content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1px;
+    background: var(--gem);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+  }
+  @keyframes shimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+  @keyframes pulse { 0%,100% { opacity: .45; } 50% { opacity: 1; } }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes dash { to { stroke-dashoffset: -20; } }
+
+  /* ── topbar ─────────────────────────────────────── */
+  .topbar { display: flex; align-items: center; gap: 14px; padding: 0 16px; height: 56px; flex: none; }
+  .logo { width: 32px; height: 32px; border-radius: 12px; display: grid; place-items: center; background: #0d1224; }
+  .brand-min { font-size: 10px; letter-spacing: .28em; color: var(--dim); font-family: var(--mono); }
+  .brand-name { font-weight: 700; font-size: 19px; margin-top: -2px; }
+  .pill {
+    display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px;
+    padding: 7px 14px; font-family: var(--mono); font-size: 12px; color: var(--dim); background: rgba(13,18,36,.6);
+  }
+  .dot { width: 6px; height: 6px; border-radius: 999px; background: var(--tele); animation: pulse 1.6s ease-in-out infinite; }
+  .badge { font-family: var(--mono); font-size: 10px; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(251,191,36,.4); color: var(--warn); background: rgba(251,191,36,.08); }
+  .spacer { flex: 1; }
+  button { font-family: inherit; cursor: pointer; }
+  .btn-ghost {
+    display: flex; align-items: center; gap: 8px; background: none; border: 1px solid var(--line); color: var(--dim);
+    border-radius: 12px; padding: 9px 13px; font-size: 12px; transition: .15s;
+  }
+  .btn-ghost:hover { border-color: var(--line-hi); color: var(--txt); }
+  .btn-chaos { border-radius: 999px; font-family: var(--mono); font-size: 11px; }
+  .btn-chaos.on { border-color: rgba(248,113,113,.5); color: #fda4af; background: rgba(248,113,113,.08); }
+  .btn-gem {
+    display: flex; align-items: center; gap: 8px; border: 0; color: #fff; font-weight: 600; font-size: 13px;
+    border-radius: 12px; padding: 10px 16px;
+    background: linear-gradient(90deg, #4285f4, #9b72cb, #d96570, #4285f4); background-size: 200% 100%;
+    animation: shimmer 3s linear infinite; box-shadow: 0 0 24px rgba(66,133,244,.35);
+  }
+  .btn-gem:disabled { opacity: .6; cursor: default; }
+  .btn-deploy {
+    display: flex; align-items: center; gap: 8px; background: none; border: 1px solid rgba(34,211,238,.4); color: var(--tele);
+    border-radius: 12px; padding: 10px 16px; font-size: 13px; transition: .15s;
+  }
+  .btn-deploy:hover:not(:disabled) { background: rgba(34,211,238,.08); }
+  .btn-deploy:disabled { opacity: .35; cursor: not-allowed; }
+
+  /* ── main grid ──────────────────────────────────── */
+  .main { flex: 1; display: flex; gap: 12px; min-height: 0; }
+  .center { flex: 1; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+
+  /* ── palette ────────────────────────────────────── */
+  .palette { width: 236px; flex: none; display: flex; flex-direction: column; min-height: 0; }
+  .palette-head { padding: 14px; border-bottom: 1px solid var(--line); }
+  .palette-title { font-size: 10px; letter-spacing: .25em; color: var(--dim); font-family: var(--mono); margin-bottom: 10px; }
+  .search { display: flex; align-items: center; gap: 8px; background: #0d1224; border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; color: var(--faint); font-size: 12px; font-family: var(--mono); }
+  .palette-body { flex: 1; overflow-y: auto; padding: 12px; }
+  .cat-name { font-size: 10px; letter-spacing: .2em; color: var(--dimmer); font-family: var(--mono); margin: 14px 0 8px; }
+  .cat-name:first-child { margin-top: 0; }
+  .svc {
+    width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px; margin-bottom: 6px;
+    background: rgba(13,18,36,.6); border: 1px solid var(--line); border-radius: 13px; color: var(--txt);
+    text-align: left; transition: .15s; cursor: grab;
+  }
+  .svc:hover { border-color: var(--line-hi); background: rgba(19,26,51,.7); box-shadow: 0 0 24px rgba(66,133,244,.25); }
+  .svc-ic { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; background: #0a0f1f; flex: none; }
+  .svc-label { font-size: 12px; font-weight: 600; display: block; }
+  .tier { display: inline-block; font-size: 9px; font-family: var(--mono); padding: 0 4px; border-radius: 4px; border: 1px solid; margin-top: 2px; }
+  .tier.serverless { color: var(--tele); border-color: rgba(34,211,238,.3); }
+  .tier.managed { color: var(--violet); border-color: rgba(196,181,253,.3); }
+  .tier.iaas { color: var(--warn); border-color: rgba(251,191,36,.3); }
+
+  /* ── canvas ─────────────────────────────────────── */
+  .canvas { flex: 1; position: relative; overflow: hidden; min-height: 0;
+    background-image: radial-gradient(rgba(120,140,255,.18) 1.4px, transparent 1.4px); background-size: 26px 26px; }
+  .edges { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .edge { fill: none; stroke: url(#gemgrad); stroke-width: 1.8; stroke-dasharray: 7 5; animation: dash 1s linear infinite; }
+  .edge-label { font-family: var(--mono); font-size: 10px; fill: var(--dim); }
+  .edge-label-bg { fill: #0d1224; }
+  .node {
+    position: absolute; min-width: 150px; padding: 10px 12px; border-radius: 14px; cursor: grab; user-select: none;
+    background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(18px); box-shadow: 0 8px 40px rgba(0,0,0,.55);
+  }
+  .node:active { cursor: grabbing; }
+  .node:hover { border-color: var(--line-hi); }
+  .node-row { display: flex; align-items: center; gap: 10px; }
+  .node-ic { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: #0a0f1f; flex: none; }
+  .node-label { font-size: 12px; font-weight: 700; }
+  .node-type { font-size: 9px; font-family: var(--mono); color: var(--dimmer); }
+  .node-status { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 9px; font-family: var(--mono); color: var(--dimmer); }
+  .node-status .dot { background: var(--ok); }
+  .port { position: absolute; top: 50%; width: 10px; height: 10px; border-radius: 999px; background: var(--tele); border: 2px solid #0a0f1f; box-shadow: 0 0 8px rgba(34,211,238,.8); transform: translateY(-50%); }
+  .port.in { left: -5px; } .port.out { right: -5px; }
+
+  /* ── right panel ────────────────────────────────── */
+  .right { width: 380px; flex: none; display: flex; flex-direction: column; min-height: 0; }
+  .tabs { display: flex; gap: 4px; padding: 6px; border-bottom: 1px solid var(--line); }
+  .tab { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; background: none; border: 0; color: var(--dim); font-size: 12px; padding: 9px 0; border-radius: 12px; transition: .15s; }
+  .tab.active { background: #131a33; color: #fff; box-shadow: 0 0 24px rgba(66,133,244,.25); }
+  .tabbody { flex: 1; overflow-y: auto; min-height: 0; }
+  .section-label { font-size: 10px; letter-spacing: .25em; color: var(--dimmer); font-family: var(--mono); margin-bottom: 10px; }
+  .idle { height: 100%; display: grid; place-items: center; text-align: center; padding: 24px; color: var(--dim); font-size: 13px; }
+  .idle .sub { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-top: 6px; line-height: 1.6; }
+
+  .gauge-wrap { display: flex; gap: 16px; align-items: center; }
+  .gauge { position: relative; width: 124px; height: 124px; flex: none; }
+  .gauge svg { transform: rotate(-90deg); }
+  .gauge-num { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+  .gauge-big { font-family: var(--mono); font-weight: 700; font-size: 19px; }
+  .gauge-sub { font-family: var(--mono); font-size: 9px; color: var(--dimmer); margin-top: 3px; }
+  .src-list { list-style: none; padding: 0; flex: 1; min-width: 0; }
+  .src-list li { display: flex; justify-content: space-between; gap: 8px; font-family: var(--mono); font-size: 10px; margin-bottom: 6px; }
+  .src-list .n { color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .src-list .t { color: var(--tele); flex: none; }
+
+  .reason { list-style: none; padding: 0; }
+  .reason li { display: flex; gap: 8px; align-items: flex-start; font-family: var(--mono); font-size: 11px; line-height: 1.55; margin-bottom: 9px; animation: rise .35s ease-out both; color: #cbd5e1; }
+  .phase { flex: none; font-size: 9px; border: 1px solid; border-radius: 5px; padding: 1px 5px; margin-top: 1px; }
+  .phase.INGEST { color: var(--tele); border-color: rgba(34,211,238,.4); }
+  .phase.PARSE { color: #7dd3fc; border-color: rgba(125,211,252,.4); }
+  .phase.GROUND { color: var(--violet); border-color: rgba(196,181,253,.4); }
+  .phase.DESIGN { color: #f0abfc; border-color: rgba(240,171,252,.4); }
+  .phase.VERIFY { color: var(--ok); border-color: rgba(52,211,153,.4); }
+  .phase.EMIT { color: var(--warn); border-color: rgba(251,191,36,.4); }
+  .summary { border-left: 2px solid #9b72cb; border-radius: 12px; background: rgba(13,18,36,.8); padding: 12px; font-size: 12px; color: #cbd5e1; line-height: 1.6; animation: rise .35s ease-out both; }
+
+  .score-row { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+  .score { font-family: var(--mono); font-weight: 700; font-size: 38px; color: var(--ok); }
+  .finding { border: 1px solid var(--line); border-radius: 13px; background: rgba(13,18,36,.7); padding: 12px; margin-bottom: 9px; }
+  .finding-head { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; }
+  .sev { margin-left: auto; font-family: var(--mono); font-size: 9px; padding: 2px 7px; border-radius: 999px; border: 1px solid; }
+  .sev.PASS { color: var(--ok); border-color: rgba(52,211,153,.4); background: rgba(52,211,153,.08); }
+  .sev.WARN { color: var(--warn); border-color: rgba(251,191,36,.4); background: rgba(251,191,36,.08); }
+  .sev.BLOCK { color: var(--bad); border-color: rgba(248,113,113,.4); background: rgba(248,113,113,.08); }
+  .finding p { font-size: 11px; color: var(--dim); margin-top: 6px; line-height: 1.55; }
+  .finding-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .std { font-family: var(--mono); font-size: 9px; color: var(--faint); }
+  .autofix { background: none; border: 0; color: var(--violet); font-family: var(--mono); font-size: 10px; display: flex; gap: 5px; align-items: center; }
+  .autofix:hover { color: #fff; }
+
+  .codehead { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: 11px; }
+  .codehead .f { color: var(--tele); }
+  pre.code { font-family: var(--mono); font-size: 11px; line-height: 1.75; padding: 14px; overflow-x: auto; color: #cbd5e1; }
+  .k { color: var(--violet); } .s { color: #6ee7b7; } .c { color: var(--faint); font-style: italic; } .num { color: var(--warn); }
+
+  .cost-total { font-family: var(--mono); font-weight: 700; font-size: 30px; margin: 4px 0 16px; }
+  .cost-line { font-family: var(--mono); font-size: 11px; margin-bottom: 10px; }
+  .cost-line .row { display: flex; justify-content: space-between; margin-bottom: 4px; color: #cbd5e1; }
+  .bar { height: 6px; border-radius: 999px; background: #131a33; overflow: hidden; }
+  .bar > div { height: 100%; border-radius: 999px; background: var(--gem); }
+
+  /* ── flight deck ────────────────────────────────── */
+  .deck { flex: none; overflow: hidden; max-height: 0; transition: max-height .4s ease; }
+  .deck.open { max-height: 290px; }
+  .deck-head { display: flex; align-items: center; gap: 12px; padding: 0 16px; height: 48px; width: 100%; background: none; border: 0; color: var(--txt); }
+  .deck-title { font-size: 10px; letter-spacing: .25em; font-family: var(--mono); color: var(--dim); }
+  .phases { display: flex; align-items: center; gap: 8px; }
+  .ph { font-family: var(--mono); font-size: 10px; padding: 2px 9px; border-radius: 999px; border: 1px solid rgba(100,116,139,.4); color: var(--dimmer); transition: .2s; }
+  .ph.active { border-color: rgba(34,211,238,.6); color: var(--tele); background: rgba(34,211,238,.08); box-shadow: 0 0 18px rgba(34,211,238,.25); }
+  .ph.passed { border-color: rgba(52,211,153,.4); color: var(--ok); }
+  .ph.failed { border-color: rgba(248,113,113,.6); color: var(--bad); background: rgba(248,113,113,.08); }
+  .ph-link { width: 16px; height: 1px; background: #334155; }
+  .prog { flex: 1; height: 6px; border-radius: 999px; background: #131a33; overflow: hidden; margin: 0 10px; }
+  .prog > div { height: 100%; border-radius: 999px; background: var(--gem); transition: width .5s; }
+  .prog-num { font-family: var(--mono); font-size: 12px; color: var(--dim); width: 42px; text-align: right; }
+  .deck-body { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 4px 16px 16px; }
+  .steps { list-style: none; padding: 0; }
+  .step { display: flex; align-items: center; gap: 9px; font-family: var(--mono); font-size: 11px; padding: 3px 0; color: #cbd5e1; }
+  .step.pending { color: var(--faint); }
+  .step.failed { color: #fda4af; }
+  .step .dur { margin-left: auto; color: var(--faint); }
+  .sdot { width: 13px; height: 13px; flex: none; display: grid; place-items: center; }
+  .spinner { width: 11px; height: 11px; border: 2px solid rgba(34,211,238,.25); border-top-color: var(--tele); border-radius: 999px; animation: spin .8s linear infinite; }
+  .btn-diag {
+    margin-left: auto; display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10px;
+    border: 1px solid rgba(248,113,113,.5); color: #fda4af; background: none; border-radius: 9px; padding: 4px 9px;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  .btn-diag:hover { background: rgba(248,113,113,.1); }
+  .telem { border: 1px solid var(--line); border-radius: 13px; background: rgba(6,9,19,.7); padding: 12px; overflow-y: auto; max-height: 190px; }
+  .telem-title { font-size: 9px; letter-spacing: .25em; font-family: var(--mono); color: var(--faint); margin-bottom: 8px; }
+  .tl { font-family: var(--mono); font-size: 11px; line-height: 1.7; color: var(--dim); animation: rise .35s ease-out both; white-space: pre-wrap; }
+  .tl.ok { color: var(--ok); } .tl.err { color: #fda4af; }
+
+  /* ── modal ──────────────────────────────────────── */
+  .overlay { position: fixed; inset: 0; z-index: 50; display: none; place-items: center; background: rgba(6,9,19,.8); backdrop-filter: blur(4px); padding: 24px; }
+  .overlay.open { display: grid; }
+  .modal { width: 100%; max-width: 760px; max-height: 86vh; display: flex; flex-direction: column; overflow: hidden; border-radius: 18px; }
+  .modal-head { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+  .modal-ic { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: #0a0f1f; }
+  .modal-title { font-weight: 700; font-size: 14px; }
+  .modal-sub { font-family: var(--mono); font-size: 10px; color: var(--dimmer); }
+  .conf { margin-left: auto; font-family: var(--mono); font-size: 10px; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(196,181,253,.4); color: var(--violet); }
+  .modal-x { background: none; border: 0; color: var(--dimmer); font-size: 16px; padding: 4px 8px; }
+  .modal-x:hover { color: #fff; }
+  .modal-body { flex: 1; overflow-y: auto; padding: 20px; }
+  .rc { border: 1px solid var(--line); border-left: 2px solid var(--bad); border-radius: 13px; padding: 14px; background: rgba(13,18,36,.7); margin-bottom: 16px; }
+  .rc h3 { font-size: 14px; color: #fda4af; }
+  .rc p { font-size: 12px; color: var(--dim); margin-top: 6px; line-height: 1.65; }
+  .logbox { border: 1px solid var(--line); border-radius: 13px; background: rgba(6,9,19,.8); padding: 12px; margin-bottom: 16px; }
+  .logbox .tl { animation: none; }
+  .diff { border: 1px solid var(--line); border-radius: 13px; overflow: hidden; margin-bottom: 8px; }
+  .dl { font-family: var(--mono); font-size: 11px; line-height: 1.8; padding: 0 12px; white-space: pre-wrap; }
+  .dl.add { background: rgba(52,211,153,.08); color: #6ee7b7; }
+  .dl.del { background: rgba(248,113,113,.08); color: #fda4af; text-decoration: line-through; text-decoration-color: rgba(248,113,113,.4); }
+  .dl.ctx { color: var(--dim); }
+  .explain { font-size: 11px; color: var(--dim); line-height: 1.6; margin-bottom: 14px; }
+  .refs { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ref { font-family: var(--mono); font-size: 10px; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(120,140,255,.2); color: var(--dim); }
+  .modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--line); }
+
+  .toast {
+    position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%); z-index: 60;
+    border: 1px solid rgba(52,211,153,.4); color: #a7f3d0; font-size: 12px; padding: 10px 16px;
+    animation: rise .35s ease-out both; display: none; border-radius: 14px;
+  }
+  .toast.show { display: block; }
+  .pad { padding: 16px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <linearGradient id="gemgrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#4285F4"/><stop offset=".5" stop-color="#9B72CB"/><stop offset="1" stop-color="#D96570"/>
+  </linearGradient>
+</defs></svg>
+
+<div class="app">
+  <!-- ════ TOPBAR ════ -->
+  <header class="topbar panel">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="logo gem-ring">
+        <svg viewBox="0 0 32 32" width="20" height="20"><path d="M16 2l9 14-9 14L7 16z" fill="url(#gemgrad)"/></svg>
+      </div>
+      <div>
+        <div class="brand-min">MILKMAN ENTERPRISE</div>
+        <div class="brand-name">Cloud<span class="gem-text">Pilot</span></div>
+      </div>
+    </div>
+    <div class="pill"><span class="dot"></span><span id="project">milkman-enterprise-prod</span><span style="color:var(--faint)">us-central1</span></div>
+    <span class="badge">DEMO MODE</span>
+    <div class="spacer"></div>
+    <button class="btn-ghost btn-chaos" id="chaosBtn" onclick="toggleChaos()">⚗ chaos off</button>
+    <button class="btn-ghost" onclick="visionImport()">📷 Import whiteboard</button>
+    <button class="btn-gem" id="genBtn" onclick="generate()">✦ Generate with Gemini</button>
+    <button class="btn-deploy" id="deployBtn" onclick="deploy()" disabled>🚀 Deploy</button>
+  </header>
+
+  <div class="main">
+    <!-- ════ PALETTE ════ -->
+    <aside class="palette panel">
+      <div class="palette-head">
+        <div class="palette-title">SERVICE CATALOG</div>
+        <div class="search">⌕ Search GCP services…</div>
+      </div>
+      <div class="palette-body" id="palette"></div>
+    </aside>
+
+    <!-- ════ CANVAS + DECK ════ -->
+    <div class="center">
+      <div class="canvas panel" id="canvas">
+        <svg class="edges" id="edgeSvg"></svg>
+      </div>
+
+      <section class="deck panel" id="deck">
+        <button class="deck-head" onclick="toggleDeck()">
+          <span id="deckIcon">🛰</span>
+          <span class="deck-title">FLIGHT DECK</span>
+          <span class="phases" id="phases"></span>
+          <span class="prog"><div id="progBar" style="width:0%"></div></span>
+          <span class="prog-num" id="progNum">0%</span>
+        </button>
+        <div class="deck-body">
+          <ol class="steps" id="steps"></ol>
+          <div class="telem"><div class="telem-title">TELEMETRY</div><div id="telem"></div></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ════ RIGHT PANEL ════ -->
+    <aside class="right panel">
+      <nav class="tabs">
+        <button class="tab active" data-tab="copilot" onclick="setTab('copilot')">✦ Copilot</button>
+        <button class="tab" data-tab="compliance" onclick="setTab('compliance')">✓ Compliance</button>
+        <button class="tab" data-tab="iac" onclick="setTab('iac')">{ } IaC</button>
+        <button class="tab" data-tab="cost" onclick="setTab('cost')">$ Cost</button>
+      </nav>
+      <div class="tabbody" id="tabbody"></div>
+    </aside>
+  </div>
+</div>
+
+<!-- ════ DIAGNOSIS MODAL ════ -->
+<div class="overlay" id="overlay">
+  <div class="modal panel gem-ring">
+    <div class="modal-head">
+      <div class="modal-ic gem-ring">🩺</div>
+      <div>
+        <div class="modal-title">Gemini Diagnosis</div>
+        <div class="modal-sub">full build log + audit trail + standards corpus · one context window</div>
+      </div>
+      <span class="conf">97% confidence</span>
+      <button class="modal-x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="rc">
+        <h3>Cloud SQL instance name collision in region us-central1</h3>
+        <p>terraform apply failed because instance name 'orders-db' was used by a deleted instance still inside its 7-day reservation window. Gemini correlated the apply log with the project's audit trail (ingested in-context) and found the deletion event from 2026-06-07.</p>
+      </div>
+      <div class="section-label">EVIDENCE · BUILD LOG</div>
+      <div class="logbox">
+        <div class="tl">google_sql_database_instance.orders-db: Creating...</div>
+        <div class="tl">╷</div>
+        <div class="tl err">│ Error: Error, failed to create instance orders-db:</div>
+        <div class="tl err">│ googleapi: Error 409: The Cloud SQL instance already exists.</div>
+        <div class="tl err">│ When you delete an instance, you can't reuse the name for up to a week.</div>
+        <div class="tl">╵</div>
+      </div>
+      <div class="section-label">PROPOSED PATCH · <span style="color:var(--tele)">main.tf</span></div>
+      <div class="diff">
+        <div class="dl ctx">resource "google_sql_database_instance" "orders-db" {</div>
+        <div class="dl del">−   name             = "orders-db"</div>
+        <div class="dl add">+   name             = "orders-db-${random_id.db_suffix.hex}"</div>
+        <div class="dl ctx">  database_version = "POSTGRES_16"</div>
+        <div class="dl add">+ </div>
+        <div class="dl add">+ resource "random_id" "db_suffix" { byte_length = 2 }</div>
+      </div>
+      <p class="explain">Suffix the instance name with a stable random id so re-creations never collide with the 7-day name reservation. Matches naming standard NAM-006 (immutable-resource suffixing).</p>
+      <div class="refs">
+        <span class="ref">📘 NAM-006 · Immutable resource naming with entropy suffixes</span>
+        <span class="ref">📘 RES-002 · Recoverable delete windows for stateful services</span>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" onclick="closeModal()">Dismiss</button>
+      <button class="btn-gem" onclick="applyRetry()">↻ Apply fix & retry</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ════════════════ icons (inline SVG, lucide-inspired) ════════════════ */
+const IC = {
+  container: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M8 6v12M16 6v12"/>',
+  boxes: '<path d="M7 8l5-3 5 3v4l-5 3-5-3z"/><path d="M2 14l5 3 5-3M12 17l5 3 5-3"/>',
+  zap: '<path d="M13 2L4 14h6l-1 8 9-12h-6z"/>',
+  server: '<rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/>',
+  database: '<ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v13c0 1.7 3.6 3 8 3s8-1.3 8-3v-13M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+  chart: '<path d="M3 21h18M7 17V9M12 17V5M17 17v-6"/>',
+  drive: '<rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 12h.01M11 12h6"/>',
+  brain: '<circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3"/>',
+  sparkles: '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9zM19 16l.9 2.1L22 19l-2.1.9L19 22l-.9-2.1L16 19l2.1-.9z"/>',
+  share: '<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.3 10.8l7.4-3.6M8.3 13.2l7.4 3.6"/>',
+  network: '<rect x="9" y="3" width="6" height="5" rx="1"/><rect x="2" y="16" width="6" height="5" rx="1"/><rect x="16" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M5 16v-2a2 2 0 012-2h10a2 2 0 012 2v2"/>',
+  shield: '<path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/>',
+  radio: '<circle cx="12" cy="12" r="2.5"/><path d="M7 7a7 7 0 000 10M17 7a7 7 0 010 10M4.5 4.5a10.5 10.5 0 000 15M19.5 4.5a10.5 10.5 0 010 15"/>',
+  key: '<circle cx="8" cy="15" r="4.5"/><path d="M11.5 11.5L20 3M16 7l3 3"/>',
+  search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/>'
+};
+const icon = (n, s = 16, c = '#fff') =>
+  `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${IC[n] || IC.boxes}</svg>`;
+
+/* ════════════════ catalog ════════════════ */
+const CATALOG = [
+  ["COMPUTE", [["Cloud Run","cloud_run","container","serverless"],["GKE Autopilot","gke","boxes","managed"],["Cloud Functions","cloud_functions","zap","serverless"],["Compute Engine","compute_engine","server","iaas"]]],
+  ["DATA & STORAGE", [["Cloud SQL","cloud_sql","database","managed"],["BigQuery","bigquery","chart","serverless"],["Cloud Storage","gcs","drive","managed"]]],
+  ["AI & ML", [["Vertex AI","vertex_ai","brain","managed"],["Gemini API","gemini","sparkles","serverless"],["Discovery Engine","discovery_engine","search","managed"]]],
+  ["NETWORKING", [["Cloud Load Balancing","load_balancer","share","managed"],["VPC Network","vpc","network","managed"],["Cloud Armor","cloud_armor","shield","managed"]]],
+  ["MESSAGING & OPS", [["Pub/Sub","pubsub","radio","serverless"],["Secret Manager","secret_manager","key","managed"]]],
+];
+document.getElementById('palette').innerHTML = CATALOG.map(([cat, svcs]) =>
+  `<div class="cat-name">${cat}</div>` + svcs.map(([label, type, ic, tier]) =>
+    `<button class="svc" onclick="addNode('${label}','${type}','${ic}')">
+       <span class="svc-ic gem-ring">${icon(ic, 14)}</span>
+       <span><span class="svc-label">${label}</span><span class="tier ${tier}">${tier}</span></span>
+     </button>`).join('')).join('');
+
+/* ════════════════ canvas graph ════════════════ */
+let nodes = [], edges = [], seq = 0;
+const cv = document.getElementById('canvas');
+
+function addNode(label, type, ic, x, y, id) {
+  const n = { id: id || 'n' + (++seq), label, type, ic, x: x ?? 120 + (nodes.length % 4) * 230, y: y ?? 90 + ((nodes.length / 4) | 0) * 150 };
+  nodes.push(n); renderGraph(); return n.id;
+}
+function renderGraph() {
+  cv.querySelectorAll('.node').forEach(e => e.remove());
+  for (const n of nodes) {
+    const el = document.createElement('div');
+    el.className = 'node'; el.id = 'node-' + n.id;
+    el.style.left = n.x + 'px'; el.style.top = n.y + 'px';
+    el.innerHTML = `<span class="port in"></span>
+      <div class="node-row"><span class="node-ic gem-ring">${icon(n.ic, 17)}</span>
+      <span><span class="node-label">${n.label}</span><br><span class="node-type">${n.type}</span></span></div>
+      <div class="node-status"><span class="dot"></span>standards-ready</div>
+      <span class="port out"></span>`;
+    drag(el, n); cv.appendChild(el);
+  }
+  drawEdges();
+}
+function drawEdges() {
+  const svg = document.getElementById('edgeSvg');
+  svg.innerHTML = edges.map(e => {
+    const a = nodes.find(n => n.id === e.s), b = nodes.find(n => n.id === e.t);
+    if (!a || !b) return '';
+    const ea = document.getElementById('node-' + a.id), eb = document.getElementById('node-' + b.id);
+    const aw = ea ? ea.offsetWidth : 150, ah = ea ? ea.offsetHeight : 78, bh = eb ? eb.offsetHeight : 78;
+    const x1 = a.x + aw, y1 = a.y + ah / 2, x2 = b.x, y2 = b.y + bh / 2;
+    const dx = Math.max(40, (x2 - x1) / 2);
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    return `<path class="edge" d="M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}"/>` +
+      (e.l ? `<rect class="edge-label-bg" x="${mx - e.l.length * 3.2 - 5}" y="${my - 9}" width="${e.l.length * 6.4 + 10}" height="16" rx="4"/>
+              <text class="edge-label" x="${mx}" y="${my + 3}" text-anchor="middle">${e.l}</text>` : '');
+  }).join('');
+}
+function drag(el, n) {
+  el.addEventListener('pointerdown', ev => {
+    if (ev.target.classList.contains('port')) return;
+    const ox = ev.clientX - n.x, oy = ev.clientY - n.y;
+    const mv = e => { n.x = e.clientX - ox; n.y = e.clientY - oy; el.style.left = n.x + 'px'; el.style.top = n.y + 'px'; drawEdges(); };
+    const up = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', up); };
+    addEventListener('pointermove', mv); addEventListener('pointerup', up);
+  });
+}
+
+/* ════════════════ vision import (multimodal demo) ════════════════ */
+function visionImport() {
+  nodes = []; edges = []; seq = 0;
+  const P = [["Cloud Armor","cloud_armor","shield",60,40],["Edge LB","load_balancer","share",60,210],
+    ["API Service","cloud_run","container",330,140],["Worker","cloud_run","container",330,360],
+    ["Orders DB","cloud_sql","database",620,60],["Event Bus","pubsub","radio",620,280],
+    ["Gemini API","gemini","sparkles",880,170]];
+  const ids = P.map(p => addNode(p[0], p[1], p[2], p[3], p[4]));
+  edges = [
+    { s: ids[0], t: ids[1], l: 'WAF' }, { s: ids[1], t: ids[2], l: 'HTTPS' },
+    { s: ids[2], t: ids[4], l: 'private IP' }, { s: ids[2], t: ids[5], l: 'publish' },
+    { s: ids[5], t: ids[3], l: 'push sub' }, { s: ids[3], t: ids[6], l: 'inference' }];
+  renderGraph();
+  toast("Gemini parsed the whiteboard — 7 services reconstructed (94% confidence). No OCR pipeline, native multimodal.");
+}
+
+/* ════════════════ right panel ════════════════ */
+const RUN = {
+  used: 1229431, max: 2097152,
+  sources: [["Enterprise Standards Corpus (Discovery Engine)", 412019],["Org Policy & IAM Snapshot", 188404],["Live Terraform State (entire estate)", 524508],["Historical Incident Postmortems", 96812],["Architecture Graph + Canvas Intent", 7688]],
+  reasoning: [
+    ["INGEST","Ingested 1,229,431 tokens in a single pass — full standards corpus, org policy snapshot and live Terraform state. No RAG chunking required at this scale."],
+    ["PARSE","Parsed canvas graph: 7 services, 6 connections. Topology classified as event-driven microservice mesh."],
+    ["GROUND","Cross-referenced design against 147 enterprise standards via Discovery Engine grounding. 3 standards directly constrain this topology."],
+    ["GROUND","Standard SEC-004 mandates private-IP-only databases — enforcing ipv4_enabled = false and VPC peering on Cloud SQL."],
+    ["DESIGN","Cloud Run ingress restricted to the internal load balancer; min instances pinned to 1 to meet RES-011 cold-start SLO."],
+    ["DESIGN","Synthesized least-privilege IAM: one runtime service account per workload, no primitive roles (IAM-002)."],
+    ["VERIFY","Replayed 12 historical incident postmortems against the proposed design — no recurrence vectors detected."],
+    ["EMIT","Emitting 9 Terraform resources with cost annotations and a Cloud Build deployment pipeline."]],
+  summary: "Designed a 7-service architecture grounded in 147 enterprise standards, emitted 9 Terraform resources, projected $797.30/mo.",
+  findings: [
+    ["PASS","IAM-002","Least-privilege service accounts","Dedicated runtime SA generated; zero primitive roles in plan.",0],
+    ["PASS","SEC-001","Encryption at rest","All stateful services use Google-managed CMEK-ready encryption.",0],
+    ["PASS","SEC-004","Database network isolation","Cloud SQL pinned to private IP with VPC peering — public path removed by Gemini during synthesis.",0],
+    ["PASS","SEC-009","Edge WAF attached","Cloud Armor baseline OWASP rule set fronts the global load balancer.",0],
+    ["WARN","COST-008","Object lifecycle missing","Event archive bucket has no Nearline transition rule. Gemini can inject a 90-day lifecycle policy.",1]],
+  score: 94,
+  cost: [["Cloud Armor",64.0],["Edge LB",36.5],["API Service",86.4],["Worker",86.4],["Orders DB",246.3],["Event Bus",41.7],["Gemini API",158.2]],
+  tf: `terraform {
+  required_providers {
+    google = { source = "hashicorp/google", version = "~> 6.0" }
+  }
+}
+
+variable "project_id" { type = string }
+variable "region"     { type = string, default = "us-central1" }
+
+# Generated by CloudPilot · grounded in 147 enterprise standards
+resource "google_service_account" "runtime" {
+  account_id   = "cloudpilot-runtime"
+  display_name = "CloudPilot runtime (least privilege)"
+}
+
+resource "google_cloud_run_v2_service" "api-service" {
+  name     = "api-service"
+  location = var.region
+  template {
+    containers {
+      image = "gcr.io/\${var.project_id}/api-service:latest"
+      resources { limits = { cpu = "2", memory = "1Gi" } }
+    }
+    scaling { min_instance_count = 1, max_instance_count = 20 }
+  }
+  ingress = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"  # SEC-004
+}
+
+resource "google_sql_database_instance" "orders-db" {
+  name             = "orders-db"
+  database_version = "POSTGRES_16"
+  region           = var.region
+  settings {
+    tier = "db-custom-2-8192"
+    ip_configuration {
+      ipv4_enabled    = false                          # SEC-004
+      private_network = google_compute_network.vpc.id
+    }
+    backup_configuration { enabled = true }            # RES-002
+  }
+}
+
+resource "google_pubsub_topic" "event-bus" {
+  name = "event-bus"
+  message_retention_duration = "86600s"
+}
+
+resource "google_project_iam_member" "gemini_user" {
+  project = var.project_id
+  role    = "roles/aiplatform.user"                    # IAM-002
+  member  = "serviceAccount:\${google_service_account.runtime.email}"
+}`
+};
+
+let tab = 'copilot', hasRun = false, generating = false, rline = 0;
+const body = document.getElementById('tabbody');
+
+function setTab(t) {
+  tab = t;
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === t));
+  renderTab();
+}
+function hl(src) {
+  return src.replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/(#[^\n]*)/g,'<span class="c">$1</span>')
+    .replace(/("(?:[^"\\\n]|\\.)*")/g,'<span class="s">$1</span>')
+    .replace(/\b(resource|variable|terraform|required_providers|module|provider|var|true|false)\b/g,'<span class="k">$1</span>')
+    .replace(/\b(\d+)\b/g,'<span class="num">$1</span>');
+}
+function renderTab() {
+  if (!hasRun && !generating) {
+    body.innerHTML = tab === 'copilot'
+      ? `<div class="idle"><div><div style="font-size:26px;opacity:.4">✦</div><p style="margin-top:10px">Gemini is on standby.</p>
+         <p class="sub">Draw an architecture, then Generate — the full standards corpus, org policies and live Terraform state ride along in one 2M-token pass.</p></div></div>`
+      : `<div class="idle"><p class="sub">Run a generation first.</p></div>`;
+    return;
+  }
+  if (generating) {
+    body.innerHTML = `<div class="idle"><div><div class="spinner" style="margin:0 auto"></div>
+      <p class="sub" style="margin-top:14px">streaming context to gemini-2.5-pro…</p></div></div>`;
+    return;
+  }
+  if (tab === 'copilot') {
+    const pct = RUN.used / RUN.max, C = 2 * Math.PI * 52;
+    body.innerHTML = `<div class="pad">
+      <div class="section-label">CONTEXT WINDOW · SINGLE PASS</div>
+      <div class="gauge-wrap">
+        <div class="gauge"><svg viewBox="0 0 120 120" width="124" height="124">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(120,140,255,.12)" stroke-width="9"/>
+          <circle cx="60" cy="60" r="52" fill="none" stroke="url(#gemgrad)" stroke-width="9" stroke-linecap="round"
+            stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct)}" style="transition:stroke-dashoffset 1.4s cubic-bezier(.22,1,.36,1)"/>
+        </svg><div class="gauge-num"><div><div class="gauge-big">1.23M</div><div class="gauge-sub">of 2M tokens</div></div></div></div>
+        <ul class="src-list">${RUN.sources.map(s => `<li><span class="n">${s[0]}</span><span class="t">${Math.round(s[1] / 1000)}k</span></li>`).join('')}</ul>
+      </div>
+      <div class="section-label" style="margin-top:18px">REASONING TRACE · <span class="gem-text">gemini-2.5-pro</span></div>
+      <ol class="reason" id="reason"></ol><div id="sumSlot"></div></div>`;
+    const ol = document.getElementById('reason');
+    RUN.reasoning.slice(0, rline).forEach(([p, t]) => ol.insertAdjacentHTML('beforeend', `<li><span class="phase ${p}">${p}</span><span>${t}</span></li>`));
+    if (rline >= RUN.reasoning.length) document.getElementById('sumSlot').innerHTML = `<div class="summary">${RUN.summary}</div>`;
+  } else if (tab === 'compliance') {
+    body.innerHTML = `<div class="pad">
+      <div class="score-row"><div class="score">${RUN.score}</div>
+        <div style="font-size:12px;color:var(--dim)"><b style="color:var(--txt)">Standards alignment</b><br>grounded via Discovery Engine · ${RUN.findings.length} findings</div></div>
+      ${RUN.findings.map(([sev, std, title, det, fix]) => `<div class="finding">
+        <div class="finding-head">${sev === 'PASS' ? '✅' : sev === 'WARN' ? '⚠️' : '⛔'} <span>${title}</span><span class="sev ${sev}">${sev}</span></div>
+        <p>${det}</p><div class="finding-foot"><span class="std">${std}</span>${fix ? '<button class="autofix">✦ Gemini autofix</button>' : ''}</div></div>`).join('')}</div>`;
+  } else if (tab === 'iac') {
+    body.innerHTML = `<div class="codehead"><span class="f">main.tf</span><span style="color:var(--dimmer)">⧉ copy</span></div><pre class="code">${hl(RUN.tf)}</pre>`;
+  } else {
+    const max = Math.max(...RUN.cost.map(c => c[1]));
+    const total = RUN.cost.reduce((a, c) => a + c[1], 0);
+    body.innerHTML = `<div class="pad"><div class="section-label">PROJECTED MONTHLY</div>
+      <div class="cost-total">$${total.toFixed(2)}</div>
+      ${RUN.cost.map(([s, u]) => `<div class="cost-line"><div class="row"><span>${s}</span><span style="color:var(--dim)">$${u.toFixed(2)}</span></div>
+        <div class="bar"><div style="width:${(u / max) * 100}%"></div></div></div>`).join('')}</div>`;
+  }
+}
+function generate(fast) {
+  if (!nodes.length) { toast("Drag services onto the canvas first."); return; }
+  generating = true; rline = 0;
+  const gb = document.getElementById('genBtn');
+  gb.disabled = true; gb.innerHTML = '✦ Gemini thinking…';
+  setTab('copilot');
+  setTimeout(() => {
+    generating = false; hasRun = true;
+    document.getElementById('deployBtn').disabled = false;
+    gb.disabled = false; gb.innerHTML = '✦ Generate with Gemini';
+    const tick = () => {
+      rline++; renderTab();
+      const el = document.querySelector('.tabbody'); el.scrollTop = el.scrollHeight;
+      if (rline < RUN.reasoning.length) setTimeout(tick, fast ? 30 : 320);
+    };
+    tick();
+  }, fast ? 60 : 1100);
+}
+
+/* ════════════════ flight deck ════════════════ */
+const PLAN = [
+  ["preflight-policy","Policy gate · org constraints replay","PREFLIGHT"],
+  ["preflight-plan","terraform plan · drift check","PREFLIGHT"],
+  ["ignition-build","Cloud Build · container bake","IGNITION"],
+  ["ignition-scan","Artifact scan · CVE sweep","IGNITION"],
+  ["ascent-apply","terraform apply · provisioning","ASCENT"],
+  ["ascent-smoke","Smoke probes · golden signals","ASCENT"],
+  ["orbit-traffic","Traffic shift · 100% to new revision","ORBIT"]];
+const PHASES = ["PREFLIGHT","IGNITION","ASCENT","ORBIT"];
+let chaos = false, deckOpen = false, deckTimer = null;
+
+function toggleChaos() {
+  chaos = !chaos;
+  const b = document.getElementById('chaosBtn');
+  b.classList.toggle('on', chaos); b.innerHTML = `⚗ chaos ${chaos ? 'ON' : 'off'}`;
+}
+function toggleDeck() { deckOpen = !deckOpen; document.getElementById('deck').classList.toggle('open', deckOpen); }
+
+function renderDeck(done, failIdx, running) {
+  deckOpen = true; document.getElementById('deck').classList.add('open');
+  const failed = failIdx >= 0 && done >= failIdx;
+  const curPhase = failed ? PLAN[failIdx][2] : done >= PLAN.length ? 'ORBIT' : PLAN[done][2];
+  document.getElementById('phases').innerHTML = PHASES.map((p, i) => {
+    const cur = PHASES.indexOf(curPhase);
+    const cls = failed && p === curPhase ? 'failed' : p === curPhase && done < PLAN.length ? 'active' : i < cur || done >= PLAN.length ? 'passed' : '';
+    return `<span class="ph ${cls}">${p}</span>` + (i < 3 ? '<span class="ph-link"></span>' : '');
+  }).join('');
+  const prog = failed ? Math.round(failIdx / PLAN.length * 100) : Math.min(100, Math.round(done / PLAN.length * 100));
+  document.getElementById('progBar').style.width = prog + '%';
+  document.getElementById('progBar').style.background = failed ? '#f87171' : 'var(--gem)';
+  document.getElementById('progNum').textContent = prog + '%';
+  document.getElementById('steps').innerHTML = PLAN.map(([id, name], i) => {
+    let st = i < done ? 'success' : i === done && running ? 'running' : 'pending';
+    if (failed && i === failIdx) st = 'failed';
+    if (failed && i > failIdx) st = 'pending';
+    const ic = st === 'success' ? '<span style="color:var(--ok)">✓</span>' : st === 'running' ? '<span class="spinner"></span>' : st === 'failed' ? '<span style="color:var(--bad)">✕</span>' : '<span style="color:var(--faint)">◌</span>';
+    const extra = st === 'failed' ? `<button class="btn-diag" onclick="openModal()">🩺 Diagnose with Gemini</button>` : st === 'success' ? `<span class="dur">${(1.8 + i * .4).toFixed(1)}s</span>` : '';
+    return `<li class="step ${st}"><span class="sdot">${ic}</span>${name}${extra}</li>`;
+  }).join('');
+  const t = document.getElementById('telem');
+  t.innerHTML = PLAN.slice(0, Math.min(done + (running ? 1 : 0), PLAN.length)).map(([id, name], i) => {
+    if (failed && i === failIdx) return `<div class="tl err">[${id}] ERROR: step failed — see diagnosis</div>`;
+    if (failed && i > failIdx) return '';
+    return i < done ? `<div class="tl">[${id}] ✓ ${name}</div>` : `<div class="tl">[${id}] … ${name}</div>`;
+  }).join('') + (done >= PLAN.length && !failed ? `<div class="tl ok">[orbit] 🛰 ORBIT CONFIRMED — architecture live in milkman-enterprise-prod</div>` : '');
+}
+function deploy(fast, fromStep) {
+  if (document.getElementById('deployBtn').disabled && !fast) return;
+  clearInterval(deckTimer);
+  let done = fromStep || 0;
+  const failIdx = chaos ? 4 : -1;
+  renderDeck(done, -1, true);
+  deckTimer = setInterval(() => {
+    done++;
+    if (failIdx >= 0 && done > failIdx) { renderDeck(failIdx, failIdx, false); clearInterval(deckTimer); return; }
+    renderDeck(done, -1, done < PLAN.length);
+    if (done >= PLAN.length) clearInterval(deckTimer);
+  }, fast ? 120 : 900);
+}
+function openModal() { document.getElementById('overlay').classList.add('open'); }
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+function applyRetry() {
+  closeModal();
+  chaos = false;
+  const b = document.getElementById('chaosBtn');
+  b.classList.remove('on'); b.innerHTML = '⚗ chaos off';
+  deploy(false, 4);
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 5200);
+}
+
+/* ════════════════ deep-link states for screenshots ════════════════ */
+renderTab();
+const state = new URLSearchParams(location.search).get('state');
+if (state) {
+  visionImport();
+  if (state !== 'canvas') {
+    generate(true);
+    setTimeout(() => {
+      rline = RUN.reasoning.length; renderTab();
+      if (state === 'compliance') setTab('compliance');
+      if (state === 'iac') setTab('iac');
+      if (state === 'cost') setTab('cost');
+      if (state === 'orbit') { renderDeck(PLAN.length, -1, false); }
+      if (state === 'diagnosis') { renderDeck(4, 4, false); openModal(); }
+    }, 400);
+  }
+}
+</script>
+</body>
+</html>

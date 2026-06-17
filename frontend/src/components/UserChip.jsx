@@ -1,0 +1,13 @@
+import { UserButton } from "@clerk/clerk-react";
+
+/** Clerk avatar + sign-out menu. Only mounted when Clerk is configured. */
+export default function UserChip() {
+  return (
+    <div className="flex items-center pl-1" data-testid="user-chip">
+      <UserButton
+        afterSignOutUrl="/"
+        appearance={{ elements: { avatarBox: "w-8 h-8 ring-1 ring-indigo-300/20" } }}
+      />
+    </div>
+  );
+}

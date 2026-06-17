@@ -1,0 +1,48 @@
+# CloudPilot deployment pipeline — triggered programmatically by the backend
+# (BuildPilot.start). Provider-agnostic: substitutions let this run in ANY
+# GCP project, not just one org's environment.
+substitutions:
+  _REGION: us-central1
+  _RUNTIME_SA: cloudpilot-runtime
+  _IAC_BUCKET: ${PROJECT_ID}-cloudpilot-iac
+
+steps:
+  # ── PREFLIGHT ────────────────────────────────────────────────
+  - id: preflight-policy
+    name: gcr.io/cloud-builders/gcloud
+    entrypoint: bash
+    args: ["-c", "gcloud resource-manager org-policies list --project=$PROJECT_ID"]
+
+  - id: preflight-plan
+    name: hashicorp/terraform:1.9
+    dir: iac
+    args: ["plan", "-input=false", "-out=tfplan", "-var", "project_id=$PROJECT_ID", "-var", "region=$_REGION"]
+
+  # ── IGNITION ─────────────────────────────────────────────────
+  - id: ignition-build
+    name: gcr.io/cloud-builders/docker
+    args: ["build", "-t", "$_REGION-docker.pkg.dev/$PROJECT_ID/cloudpilot/app:$SHORT_SHA", "."]
+
+  - id: ignition-scan
+    name: gcr.io/cloud-builders/gcloud
+    args: ["artifacts", "docker", "images", "scan", "$_REGION-docker.pkg.dev/$PROJECT_ID/cloudpilot/app:$SHORT_SHA", "--remote"]
+
+  # ── ASCENT ───────────────────────────────────────────────────
+  - id: ascent-apply
+    name: hashicorp/terraform:1.9
+    dir: iac
+    args: ["apply", "-input=false", "-auto-approve", "tfplan"]
+
+  - id: ascent-smoke
+    name: gcr.io/cloud-builders/curl
+    args: ["-sf", "https://app-$PROJECT_ID.$_REGION.run.app/healthz"]
+
+  # ── ORBIT ────────────────────────────────────────────────────
+  - id: orbit-traffic
+    name: gcr.io/cloud-builders/gcloud
+    args: ["run", "services", "update-traffic", "app", "--region=$_REGION", "--to-latest"]
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8
+timeout: 1800s

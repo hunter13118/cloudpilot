@@ -1,0 +1,10 @@
+# Cloudflare Pages config. The dashboard build settings (below, in DEPLOY.md)
+# drive CI builds; this file documents the project + output dir for `wrangler`.
+name = "cloudpilot"
+compatibility_date = "2026-06-01"
+pages_build_output_dir = "frontend/dist"
+
+# Secrets are NOT defined here. Set them in the dashboard or via:
+#   wrangler pages secret put GEMINI_API_KEY
+#   wrangler pages secret put CLERK_JWKS_URL
+# Build-time public vars (VITE_CLERK_PUBLISHABLE_KEY) go in Pages → Settings → Env.

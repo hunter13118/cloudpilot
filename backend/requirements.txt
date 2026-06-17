@@ -1,0 +1,13 @@
+# CloudPilot — The Brain (FastAPI backend)
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+pydantic==2.11.4
+pydantic-settings==2.9.1
+python-dotenv==1.1.0
+python-multipart==0.0.20
+
+# Google Cloud — Gemini orchestration layer
+# These are imported lazily; the app boots in rich demo mode without them.
+google-cloud-aiplatform==1.95.1
+google-cloud-discoveryengine==0.13.8
+google-cloud-build==3.31.0
