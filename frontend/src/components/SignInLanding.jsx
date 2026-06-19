@@ -1,5 +1,6 @@
 import { SignInButton } from "@clerk/clerk-react";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { afterAuthUrl } from "../lib/appBase.js";
 
 /**
  * Shown when Clerk is configured and the visitor is signed out.
@@ -33,7 +34,7 @@ export default function SignInLanding() {
           Sign in for the interactive demo. Paste your own Gemini key for live synthesis, or ask for operator access.
         </p>
 
-        <SignInButton mode="modal">
+        <SignInButton mode="redirect" forceRedirectUrl={afterAuthUrl()} signUpForceRedirectUrl={afterAuthUrl()}>
           <button className="gem-btn mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl shadow-glow" data-testid="signin-btn">
             <Sparkles size={15} />
             Sign in to enter

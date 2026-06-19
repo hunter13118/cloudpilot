@@ -21,14 +21,16 @@ const tree = (
 // Only mount ClerkProvider when a key is present, so the app still builds and
 // runs (ungated demo) on a fresh Cloudflare deploy with no env configured.
 const root = ReactDOM.createRoot(document.getElementById("root"));
+const authUrl = afterAuthUrl();
 root.render(
   <React.StrictMode>
     {PUBLISHABLE_KEY ? (
       <ClerkProvider
         publishableKey={PUBLISHABLE_KEY}
-        afterSignOutUrl={afterAuthUrl}
-        signInFallbackRedirectUrl={afterAuthUrl}
-        signUpFallbackRedirectUrl={afterAuthUrl}
+        afterSignOutUrl={authUrl}
+        signInFallbackRedirectUrl={authUrl}
+        signUpFallbackRedirectUrl={authUrl}
+        satelliteAutoSync={false}
       >
         {tree}
       </ClerkProvider>

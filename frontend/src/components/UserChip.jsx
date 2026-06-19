@@ -6,7 +6,7 @@ export default function UserChip() {
   return (
     <div className="flex items-center pl-1" data-testid="user-chip">
       <UserButton
-        afterSignOutUrl={afterAuthUrl}
+        afterSignOutUrl={afterAuthUrl()}
         appearance={{ elements: { avatarBox: "w-8 h-8 ring-1 ring-indigo-300/20" } }}
       />
     </div>
